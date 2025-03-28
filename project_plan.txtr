@@ -1,0 +1,184 @@
+# MetaTrader MCP Server Design Document
+
+## Overview
+The MetaTrader Connection Protocol (MCP) server will provide a bridge between external applications and the MetaTrader 5 platform. Instead of using the official API, we'll leverage MQL5 (MetaQuotes Language 5) as the primary programming language, with Python for supporting functionality where MQL5 is insufficient.
+
+## Architecture
+
+### Components
+1. **MQL5 Expert Advisor (EA)**: Acts as the MT5 side of the connection
+2. **Socket Server**: Handles communication between clients and MT5
+3. **Command Processor**: Parses and executes commands from clients
+4. **Authentication Module**: Secures access to the MCP server
+5. **Logging System**: Records operations and errors
+
+### Communication Flow
+1. Client sends command to Socket Server
+2. Socket Server forwards command to Command Processor
+3. Command Processor validates and executes the command using appropriate MQL5 functions
+4. Results are returned to the client via Socket Server
+
+## File Structure
+```
+C:/metatrader_mcp/
+├── mql5/
+│   ├── Experts/
+│   │   └── MCPServer.mq5            # Main EA file
+│   ├── Include/
+│   │   ├── MCPCore/
+│   │   │   ├── CommandProcessor.mqh # Command processing logic
+│   │   │   ├── SocketHandler.mqh    # Socket communication
+│   │   │   ├── OrderManager.mqh     # Trading operations
+│   │   │   ├── ChartManager.mqh     # Chart operations
+│   │   │   └── DataManager.mqh      # Data operations
+│   │   └── MCPConfig.mqh            # Configuration settings
+│   └── Scripts/
+│       └── InstallMCPServer.mq5     # Installation script
+├── python/
+│   ├── mcp_bridge.py                # Python bridge (if needed)
+│   ├── mcp_client.py                # Example client
+│   └── mcp_utils.py                 # Utility functions
+└── docs/
+    ├── COMMANDS.md                  # Command reference
+    ├── INSTALLATION.md              # Installation guide
+    └── README.md                    # General documentation
+```
+
+## MQL5 Components
+
+### MCPServer.mq5 (Expert Advisor)
+The main entry point for the MCP server implementation in MT5. It will:
+- Initialize socket connection
+- Process incoming commands
+- Handle authentication
+- Manage resources
+
+### CommandProcessor.mqh
+Processes and executes commands received from clients:
+- Trading operations (open/modify/close positions)
+- Chart operations (get/set timeframes, indicators)
+- Account operations (balance, equity, margin)
+- Price data operations
+
+### SocketHandler.mqh
+Handles socket communication:
+- Initialize and maintain socket connection
+- Send/receive data
+- Handle connection errors
+
+### OrderManager.mqh
+Manages trading operations:
+- Open positions
+- Modify positions
+- Close positions
+- Get position information
+
+### ChartManager.mqh
+Manages chart operations:
+- Change timeframes
+- Add/remove indicators
+- Get chart data
+
+### DataManager.mqh
+Manages market data operations:
+- Get current prices
+- Get historical data
+- Get indicator values
+
+## Python Components
+
+### mcp_bridge.py
+Acts as a bridge between Python applications and the MQL5 EA:
+- Connect to the MCP server socket
+- Send commands and receive responses
+- Handle connection issues
+
+### mcp_client.py
+Example client implementation:
+- Demonstrates how to connect to the MCP server
+- Shows various command examples
+- Includes error handling
+
+## Command Structure
+Commands will follow a JSON format:
+```json
+{
+  "command": "command_name",
+  "parameters": {
+    "param1": "value1",
+    "param2": "value2"
+  },
+  "requestId": "unique_id",
+  "auth": "auth_token"
+}
+```
+
+## Supported Commands
+
+### Trading Operations
+- `open_order`: Open a new position
+- `modify_order`: Modify an existing position
+- `close_order`: Close an existing position
+- `get_orders`: Get list of open positions
+
+### Chart Operations
+- `get_chart_data`: Get chart data for a symbol
+- `set_timeframe`: Change chart timeframe
+- `add_indicator`: Add indicator to chart
+- `remove_indicator`: Remove indicator from chart
+
+### Account Operations
+- `get_account_info`: Get account information
+- `get_balance`: Get account balance
+- `get_equity`: Get account equity
+- `get_margin`: Get account margin
+
+### Market Data Operations
+- `get_price`: Get current price for a symbol
+- `get_history`: Get historical data for a symbol
+- `get_indicator_value`: Get indicator value
+
+## Security Considerations
+- Authentication via token system
+- IP whitelist for connections
+- Encrypted communication (if possible with MQL5)
+- Command validation to prevent malicious inputs
+
+## Error Handling
+- Robust error handling for all operations
+- Detailed error messages
+- Logging of all errors
+- Graceful recovery from connection issues
+
+## Performance Considerations
+- Efficient socket communication
+- Optimized command processing
+- Resource management
+- Connection pooling for multiple clients
+
+## Implementation Plan
+
+### Phase 1: Core Framework
+1. Implement SocketHandler.mqh
+2. Implement basic CommandProcessor.mqh
+3. Create MCPServer.mq5 shell
+4. Implement authentication
+
+### Phase 2: Trading Functions
+1. Implement OrderManager.mqh
+2. Add trading commands to CommandProcessor
+
+### Phase 3: Chart and Data Functions
+1. Implement ChartManager.mqh
+2. Implement DataManager.mqh
+3. Add chart and data commands to CommandProcessor
+
+### Phase 4: Python Components
+1. Implement mcp_bridge.py
+2. Create example client
+3. Test full system
+
+### Phase 5: Documentation and Testing
+1. Complete command reference
+2. Write installation guide
+3. Conduct performance and security testing

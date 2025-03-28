@@ -1,0 +1,16 @@
+# MCP Server Requirements
+
+# Core libraries for socket communication
+socket
+threading
+json
+
+# Utilities
+uuid
+datetime
+argparse
+logging
+configparser
+
+# For future enhancements
+requests>=2.25.0
